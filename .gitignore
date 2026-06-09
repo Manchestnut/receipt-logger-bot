@@ -1,0 +1,6 @@
+.env
+staging/
+__pycache__/
+*.json
+.pytest_cache/
+test.py
