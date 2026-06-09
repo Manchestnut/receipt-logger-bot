@@ -19,4 +19,4 @@ jobs:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           git remote add hf https://luke-117:$HF_TOKEN@huggingface.co/spaces/luke-117/receipt-logger-bot
-          git push --force hf master
+          git push --force hf master:main
