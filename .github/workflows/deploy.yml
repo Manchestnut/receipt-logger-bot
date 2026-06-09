@@ -16,8 +16,7 @@ jobs:
 
       - name: Push to Hugging Face
         env:
-          # Your GitHub token secret injected here
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           git remote add hf https://luke-117:$HF_TOKEN@huggingface.co/spaces/luke-117/receipt-logger-bot
-          git push --force hf main
+          git push --force hf master
