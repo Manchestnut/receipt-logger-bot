@@ -7,7 +7,7 @@ def main():
 
     TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
     application = (
-    ApplicationBuilder()
+        ApplicationBuilder()
         .token(TOKEN)
         .read_timeout(30)       # Allow up to 30 seconds to read stream chunks
         .write_timeout(30)      # Allow up to 30 seconds to write out updates
