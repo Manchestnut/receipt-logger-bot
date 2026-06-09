@@ -1,0 +1,24 @@
+name: Sync to Hugging Face Spaces
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Push to Hugging Face
+        env:
+          # Your GitHub token secret injected here
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          # Replace with your Hugging Face username and Space name!
+          git remote add hf https://luke-117:$HF_TOKEN@huggingface.co/spaces/luke-117/receipt-logger-bot
+          git push --force hf main
