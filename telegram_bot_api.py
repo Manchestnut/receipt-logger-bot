@@ -22,7 +22,7 @@ async def handle_receipt_photo(update: Update, context: ContextTypes.DEFAULT_TYP
     photo = update.message.photo[-1]
    
     file = await context.bot.get_file(photo.file_id)
-    os.makerdirs("./staging", exist_ok=True)
+    os.makedirs("./staging", exist_ok=True)
     local_path = f"./staging/{photo.file_id}.jpg"
     await file.download_to_drive(local_path)
     print(f"Successfully downloaded receipt to: {local_path}")
