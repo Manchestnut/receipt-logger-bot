@@ -2,7 +2,7 @@ name: Sync to Hugging Face Spaces
 
 on:
   push:
-    branches: [main]
+    branches: [master]
 
 jobs:
   deploy:
@@ -19,6 +19,5 @@ jobs:
           # Your GitHub token secret injected here
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          # Replace with your Hugging Face username and Space name!
           git remote add hf https://luke-117:$HF_TOKEN@huggingface.co/spaces/luke-117/receipt-logger-bot
           git push --force hf main
