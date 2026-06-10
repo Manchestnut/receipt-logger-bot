@@ -1,17 +1,11 @@
-# 1. Use the official, lightweight Python 3.12 image
 FROM python:3.12-slim
-
-# 2. Set the default working directory inside the container
 WORKDIR /app
-
-# 3. Copy our requirements manifest first to optimize build cache
 COPY requirements.txt .
-
-# 4. Install all Python packages cleanly with no cache clutter
 RUN pip install --no-cache-dir -r requirements.txt
-
-# 5. Copy all your modular code files and assets into the app folder
 COPY . .
 
-# 6. Run the main entry point to start the continuous bot polling loop
-CMD ["python", "app.py"]
+# EXPOSE port 10000 (Render's default public web entry point)
+EXPOSE 10000
+
+# WEB ENTRYPOINT: Start uvicorn server on host 0.0.0.0 and port 10000
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "10000"]

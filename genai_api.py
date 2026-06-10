@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 class ReceiptData(BaseModel):
 
-    is_receipt: bool = Field(description="True if the image is a financial receipt, invoice, or bill. False otherwise.")
+    is_receipt: bool = Field(description="True if the image is a financial receipt, invoice, or bill, or money transfer. False otherwise.")
 
     merchant: Optional[str] = Field(description="The name of the store or business")
     total_amount: Optional[float] = Field(description="The total cost on the scripts")

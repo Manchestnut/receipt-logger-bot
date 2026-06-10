@@ -1,27 +1,40 @@
 from telegram.ext import ApplicationBuilder, MessageHandler, filters                               
 import os
+from fastapi import FastAPI, Request, Response
+from telegram import Update
+import asyncio
+from contextlib import asynccontextmanager
+
 import telegram_bot_api as tg
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    render_url = os.getenv("RENDER_EXTERNAL_URL")
+    webhook_url = f"{render_url}/telegram-webhook"
 
-def main():
+    print(f"Setting up Telegram Webhook to target: {webhook_url}")
+    await bot_app.bot.set_webhook(url=webhook_url, allowed_updates=Update.ALL_TYPES)
 
-    TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-    application = (
-        ApplicationBuilder()
-        .token(TOKEN)
-        # 🎯 PROXY PIPE FIX: Routes around Hugging Face's network block!
-        .base_url("https://tele-bridge-cyan.vercel.app/bot") 
-        .read_timeout(30)
-        .write_timeout(30)
-        .connect_timeout(30)
-        .build()
-    )
+    async with bot_app:
+        await bot_app.start()
+        yield
+        await bot_app.stop()
 
-    photo_handler = MessageHandler(filters.PHOTO, tg.handle_receipt_photo)
-    application.add_handler(photo_handler)
+app = FastAPI(lifespan=lifespan)
 
-    print("Bot is listening for receipts...")
-    application.run_polling()
+TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+bot_app = ApplicationBuilder().token(TOKEN).build()
 
-if __name__ == '__main__':
-    main()
+bot_app.add_handler(MessageHandler(filters.PHOTO, tg.handle_receipt_photo))
+
+@app.post("/telegram-webhook")
+async def process_telegram_update(request: Request):
+    payload = await request.json()
+    update = Update.de_json(payload, bot_app.bot)
+
+    await bot_app.process_update(update)
+    return Response(status_code=200)
+
+@app.get("/")
+def health_check():
+    return {"status": "healthy", "pipeline": "Mendelluke Expense Bot is live! Lezzgoo!"}
