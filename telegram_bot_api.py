@@ -9,6 +9,50 @@ from datetime import datetime
 
 ALLOWED_GROUPS = [-5031634171]
 
+async def handle_text_receipt(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    current_chat_id = update.effective_chat.id
+    print(f"Group chat id: {update.effective_chat.id}")
+    if current_chat_id not in ALLOWED_GROUPS:
+        print(f"Unauthorized access attempt by: {current_chat_id}")
+        await update.message.reply_text("You are not authorized to use this bot! Shoo!")
+        return
+    
+    print("Received a text receipt!")
+    raw_text = update.message.text
+
+    try:
+        parts = [item.strip() for item in raw_text.split(",")]
+
+        if len(parts) < 2 or parts[1] == "":
+            await update.message.reply_text(
+                "Format error! Please provide both the amount and the merchant.\n"
+                "Example: '1200, mama' or '450, Starbucks'"
+            )
+            return
+    
+        amount = float(parts[0])
+        merchant = parts[1]
+
+        gs.sheet = gs.connect_to_google_sheet("Expense Tracker")
+        gs.append_receipt_to_sheet(
+            gs.sheet,
+            merchant=merchant,
+            total_amount=amount,
+            date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            category="Uncategorized",
+            logged_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        )
+
+        await update.message.reply_text(
+            "Expense Logged!"
+        )
+
+    except ValueError:
+        await update.message.reply_text("Parsing error! The first part must be a valid number.")
+    except Exception as e:
+        await update.message.reply_text("Data pipeline error! Failed to append row to Google Sheets.")
+
+
 async def handle_receipt_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     current_chat_id = update.effective_chat.id
     print(f"Group chat id: {update.effective_chat.id}")
@@ -27,9 +71,10 @@ async def handle_receipt_photo(update: Update, context: ContextTypes.DEFAULT_TYP
     await file.download_to_drive(local_path)
     print(f"Successfully downloaded receipt to: {local_path}")
 
+    current_photo_message_id = update.message.message_id
+
     try:
         ai_raw_json = await ai.analyze_receipt_with_ai(local_path)
-        current_photo_message_id = update.message.message_id
         print(f"AI extracted data: {ai_raw_json}")
         data = json.loads(ai_raw_json)
 
@@ -40,7 +85,6 @@ async def handle_receipt_photo(update: Update, context: ContextTypes.DEFAULT_TYP
                 text="Di naman are resibo nganii!",
                 reply_to_message_id=current_photo_message_id
             )
-            os.remove(local_path)
             return
 
         gs.sheet = gs.connect_to_google_sheet("Expense Tracker")
@@ -63,6 +107,10 @@ async def handle_receipt_photo(update: Update, context: ContextTypes.DEFAULT_TYP
     except Exception as e:
         print(f"Error during execution: {e}")
         await update.message.reply_text(
-            text="Sorry, I ran into an error tyring to process this image.",
+            text="Sorry, I ran into an error trying to process this image.",
             reply_to_message_id=current_photo_message_id
         )
+    finally:
+        if os.path.exists(local_path):
+            os.remove(local_path)
+            print("Cleaned up local staging file.")
