@@ -25,13 +25,16 @@ async def handle_text_receipt(update: Update, context: ContextTypes.DEFAULT_TYPE
 
         if len(parts) < 2 or parts[1] == "":
             await update.message.reply_text(
-                "Format error! Please provide both the amount and the merchant.\n"
-                "Example: '1200, mama' or '450, Starbucks'"
+                "Format error! Please provide at least the amount and merchant, separated by a comma.\n"
+                "Examples:\n"
+                "'1200, mama'\n"
+                "'450, Starbucks, Coffee'"
             )
             return
     
         amount = float(parts[0])
         merchant = parts[1]
+        category = parts[2] if len(parts) > 2 and parts[2] != "" else "Others"
 
         gs.sheet = gs.connect_to_google_sheet("Expense Tracker")
         gs.append_receipt_to_sheet(
@@ -39,12 +42,12 @@ async def handle_text_receipt(update: Update, context: ContextTypes.DEFAULT_TYPE
             merchant=merchant,
             total_amount=amount,
             date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            category="Uncategorized",
+            category=category,
             logged_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         )
 
         await update.message.reply_text(
-            "Expense Logged!"
+            "Expense Logged."
         )
 
     except ValueError:
