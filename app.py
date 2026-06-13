@@ -26,7 +26,6 @@ TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 bot_app = ApplicationBuilder().token(TOKEN).build()
 
 bot_app.add_handler(MessageHandler(filters.PHOTO, tg.handle_receipt_photo))
-bot_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, tg.handle_text_receipt))
 
 @app.post("/telegram-webhook")
 async def process_telegram_update(request: Request):

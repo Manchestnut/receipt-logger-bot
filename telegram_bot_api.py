@@ -9,53 +9,6 @@ from datetime import datetime
 
 ALLOWED_GROUPS = [-5031634171]
 
-async def handle_text_receipt(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    current_chat_id = update.effective_chat.id
-    print(f"Group chat id: {update.effective_chat.id}")
-    if current_chat_id not in ALLOWED_GROUPS:
-        print(f"Unauthorized access attempt by: {current_chat_id}")
-        await update.message.reply_text("You are not authorized to use this bot! Shoo!")
-        return
-    
-    print("Received a text receipt!")
-    raw_text = update.message.text
-
-    try:
-        parts = [item.strip() for item in raw_text.split(",")]
-
-        if len(parts) < 2 or parts[1] == "":
-            await update.message.reply_text(
-                "Format error! Please provide at least the amount and merchant, separated by a comma.\n"
-                "Examples:\n"
-                "'1200, mama'\n"
-                "'450, Starbucks, Coffee'"
-            )
-            return
-    
-        amount = float(parts[0])
-        merchant = parts[1]
-        category = parts[2] if len(parts) > 2 and parts[2] != "" else "Others"
-
-        gs.sheet = gs.connect_to_google_sheet("Expense Tracker")
-        gs.append_receipt_to_sheet(
-            gs.sheet,
-            merchant=merchant,
-            total_amount=amount,
-            date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            category=category,
-            logged_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        )
-
-        await update.message.reply_text(
-            "Expense Logged."
-        )
-
-    except ValueError:
-        await update.message.reply_text("Parsing error! The first part must be a valid number.")
-    except Exception as e:
-        await update.message.reply_text("Data pipeline error! Failed to append row to Google Sheets.")
-
-
 async def handle_receipt_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     current_chat_id = update.effective_chat.id
     print(f"Group chat id: {update.effective_chat.id}")
