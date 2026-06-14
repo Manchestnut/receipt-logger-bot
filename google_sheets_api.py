@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def append_receipt_to_sheet(sheet, merchant, total_amount, date, category, logged_at):
-    row_data = [merchant, total_amount, date, category, logged_at]
+def append_receipt_to_sheet(sheet, id, merchant, total_amount, date, category, logged_at):
+    row_data = [merchant, id, total_amount, date, category, logged_at]
     sheet.append_row(row_data)
     print("Row successfully inserted into Google Sheets!")
 
