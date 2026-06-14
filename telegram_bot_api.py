@@ -7,7 +7,7 @@ import genai_api as ai
 from datetime import datetime
 
 
-ALLOWED_GROUPS = [-5031634171, -1003923716298]
+ALLOWED_GROUPS = [-5031634171, -1003923716298, -1004467059589] 
 
 async def handle_receipt_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     current_chat_id = update.effective_chat.id
