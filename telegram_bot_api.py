@@ -84,6 +84,8 @@ async def handle_deletion_callback(update: Update, context: ContextTypes.DEFAULT
     query = update.callback_query
     await query.answer()
 
+    await query.edit_message_text(text="Deleting...")
+
     data_parts = query.data.split(":")
     target_message_id = data_parts[1]
 
@@ -107,14 +109,14 @@ async def handle_deletion_callback(update: Update, context: ContextTypes.DEFAULT
             try:
                 await context.bot.delete_message(chat_id=chat_id, message_id=target_message_id)
             except Exception as e:
-                print(f"Could not delete original photo (might already be deleted): {e}")
+                print(f"Could not delete photo: {e}")
 
             try:
                 await context.bot.delete_message(chat_id=chat_id, message_id=bot_reply_message_id)
             except Exception as e:
-                print(f"Could not delete bot reply message: {e}")
+                print(f"Could not delete bot reply: {e}")
         else:
-            await query.edit_message_text(text="This entry has already been removed from the database")
+            await query.edit_message_text(text="This entry has already been removed.")
 
     except Exception as e:
         print(f"Failed to execute callback deletion pipeline: {e}")
