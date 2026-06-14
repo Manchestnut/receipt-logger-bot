@@ -6,7 +6,7 @@ load_dotenv()
 
 
 def append_receipt_to_sheet(sheet, id, merchant, total_amount, date, category, logged_at):
-    row_data = [merchant, id, total_amount, date, category, logged_at]
+    row_data = [id, merchant, total_amount, date, category, logged_at]
     sheet.append_row(row_data)
     print("Row successfully inserted into Google Sheets!")
 
