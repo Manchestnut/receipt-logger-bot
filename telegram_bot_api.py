@@ -1,5 +1,5 @@
 from telegram.ext import ContextTypes     
-from telegram import Update                                           
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup                                        
 import os
 import json
 import google_sheets_api as gs
@@ -46,6 +46,7 @@ async def handle_receipt_photo(update: Update, context: ContextTypes.DEFAULT_TYP
         gs.sheet = gs.connect_to_google_sheet("Expense Tracker")
         gs.append_receipt_to_sheet(
             gs.sheet,
+            id=current_photo_message_id,
             merchant=data["merchant"],
             total_amount=data["total_amount"],
             date=data["transaction_date"],
@@ -53,13 +54,20 @@ async def handle_receipt_photo(update: Update, context: ContextTypes.DEFAULT_TYP
             logged_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         )
 
-        os.remove(local_path)
-        print("Cleaned up local staging file.")
+        keyboard = [
+            [
+                InlineKeyboardButton("Delete", callback_data=f"delete_row:{current_photo_message_id}")
+            ]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
 
         await update.message.reply_text(
             text=f"Recorded successfully! \nStore: {data['merchant']}\nTotal: ₱{data['total_amount']:.2f}\nDate: {data['transaction_date']}\nCategory: {data['category']}",
-            reply_to_message_id=current_photo_message_id
+            reply_to_message_id=current_photo_message_id,
+            reply_markup=reply_markup
         )
+
     except Exception as e:
         print(f"Error during execution: {e}")
         await update.message.reply_text(
@@ -70,3 +78,31 @@ async def handle_receipt_photo(update: Update, context: ContextTypes.DEFAULT_TYP
         if os.path.exists(local_path):
             os.remove(local_path)
             print("Cleaned up local staging file.")
+
+
+async def handle_deletion_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    data_parts = query.data.split(":")
+    target_message_id = data_parts[1]
+
+    try:
+        sheet = gs.connect_to_google_sheet("Expense Tracker")
+        all_rows = sheet.get_all_values()
+        row_to_delete = None
+
+        for index, row in enumerate(all_rows):
+            if row and str(row[0]).strip() == str(target_message_id).strip():
+                row_to_delete = index + 1
+                break
+
+        if row_to_delete:
+            sheet.delete_rows(row_to_delete)
+            print(f"Successfully deleted sheet row {row_to_delete} linked to message {target_message_id}")
+            await query.edit_message_text(text="Expense entry deleted")
+        else:
+            await query.edit_message_text(text="Error: Could not find this entry in the database")
+
+    except Exception as e:
+        print(f"Failed to execute callback deletion pipeline: {e}")

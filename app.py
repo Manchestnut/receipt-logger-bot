@@ -1,4 +1,4 @@
-from telegram.ext import ApplicationBuilder, MessageHandler, filters                               
+from telegram.ext import ApplicationBuilder, MessageHandler, CallbackQueryHandler, filters                              
 import os
 from fastapi import FastAPI, Request, Response
 from telegram import Update
@@ -26,6 +26,7 @@ TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 bot_app = ApplicationBuilder().token(TOKEN).build()
 
 bot_app.add_handler(MessageHandler(filters.PHOTO, tg.handle_receipt_photo))
+bot_app.add_handler(CallbackQueryHandler(tg.handle_deletion_callback, pattern="^delete_row:"))
 
 @app.post("/telegram-webhook")
 async def process_telegram_update(request: Request):
