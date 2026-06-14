@@ -87,6 +87,9 @@ async def handle_deletion_callback(update: Update, context: ContextTypes.DEFAULT
     data_parts = query.data.split(":")
     target_message_id = data_parts[1]
 
+    chat_id = query.message.chat_id
+    bot_reply_message_id = query.message.message_id
+
     try:
         sheet = gs.connect_to_google_sheet("Expense Tracker")
         all_rows = sheet.get_all_values()
@@ -100,9 +103,18 @@ async def handle_deletion_callback(update: Update, context: ContextTypes.DEFAULT
         if row_to_delete:
             sheet.delete_rows(row_to_delete)
             print(f"Successfully deleted sheet row {row_to_delete} linked to message {target_message_id}")
-            await query.edit_message_text(text="Expense entry deleted")
+            
+            try:
+                await context.bot.delete_message(chat_id=chat_id, message_id=target_message_id)
+            except Exception as e:
+                print(f"Could not delete original photo (might already be deleted): {e}")
+
+            try:
+                await context.bot.delete_message(chat_id=chat_id, message_id=bot_reply_message_id)
+            except Exception as e:
+                print(f"Could not delete bot reply message: {e}")
         else:
-            await query.edit_message_text(text="Error: Could not find this entry in the database")
+            await query.edit_message_text(text="This entry has already been removed from the database")
 
     except Exception as e:
         print(f"Failed to execute callback deletion pipeline: {e}")
